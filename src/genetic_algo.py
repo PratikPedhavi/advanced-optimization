@@ -28,14 +28,25 @@ def crossover(parent1: np.ndarray, parent2: np.ndarray) -> np.ndarray:
     return child
 
 
+def mutation(child_array: np.ndarray, scramble_len: int = 4) -> np.ndarray:
+    scramble_point = np.random.randint(0, len(child_array)-scramble_len)
+    scramble_array = child_array[scramble_point:scramble_point + scramble_len].copy()
+    rng = np.random.default_rng()
+    array_new = rng.permutation(scramble_array)
+    child_array[scramble_point:scramble_point + scramble_len] = array_new
+    return child_array
+
+
 if __name__ == '__main__':
     population_size = 10
-    gene_count = 4
+    gene_count = 8
     population = population_init(population_size, gene_count, 'int')
     fitness = list(map(fitness_function, population))
     parents = parent_selection(population)
     child = crossover(parents[0], parents[1])
+    child_new = mutation(child.copy())
     print(population)
     print(fitness)
     print("Parents: {}".format(parents))
     print("Child: {}".format(child))
+    print("Child Mutated: {}".format(child_new))
