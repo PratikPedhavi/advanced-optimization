@@ -5,21 +5,28 @@ import numpy as np
 
 def population_init(population_size: int, gene_count: int, data_type: str) -> List[np.ndarray]:
     """ Returns a list of numpy arrays representing the population."""
-    if data_type == 'int':
-        population_arr = [np.random.randint(low=1, high=10, size=gene_count) for _ in range(population_size)]
-    else:
-        population_arr = [np.random.randint(low=1, high=10, size=gene_count) for _ in range(population_size)]
+    population_arr = list()
+    np.random.seed(42)
+    for _ in range(population_size):
+        population_arr.append(np.random.randint(low=1, high=10, size=gene_count))
+    print("Initial Population: {}".format(population_arr))
     return population_arr
 
 
 def fitness_function(x):
     fitness_array = x**3 + 5 * x**2
-    return fitness_array
+    return np.sum(fitness_array)
 
 
-def parent_selection(population: List[np.ndarray]) -> List[np.ndarray]:
-    selected_idx = np.random.choice(range(len(population)), size=2, replace=False)
-    return [population[selected_idx[0]], population[selected_idx[1]]]
+def parent_selection(population: List[np.ndarray], selection_method: str = 'roulette') -> (List[np.ndarray], int):
+    if selection_method == 'random':
+        selected_idx = np.random.choice(range(len(population)), size=2, replace=False)
+    else: # selection_method == 'roulette':
+        fitness_values = np.array(list(map(fitness_function, population)))
+        total_fitness = np.sum(fitness_values)
+        selection_probabilities = fitness_values / total_fitness
+        selected_idx = np.random.choice(range(len(population)), size=2, replace=False, p=selection_probabilities)
+    return [population[selected_idx[0]], population[selected_idx[1]]], selected_idx
 
 
 def crossover(parent1: np.ndarray, parent2: np.ndarray) -> np.ndarray:
@@ -40,13 +47,19 @@ def mutation(child_array: np.ndarray, scramble_len: int = 4) -> np.ndarray:
 if __name__ == '__main__':
     population_size = 10
     gene_count = 8
+    best_fitness = []
     population = population_init(population_size, gene_count, 'int')
-    fitness = list(map(fitness_function, population))
-    parents = parent_selection(population)
-    child = crossover(parents[0], parents[1])
-    child_new = mutation(child.copy())
-    print(population)
-    print(fitness)
-    print("Parents: {}".format(parents))
-    print("Child: {}".format(child))
-    print("Child Mutated: {}".format(child_new))
+    termination_criteria = 0
+    while termination_criteria < 40000:
+        fitness = list(map(fitness_function, population))
+        best_fitness.append(max(fitness))
+        least_fitness = min(fitness)
+        parents, selected_idx = parent_selection(population)
+        child = crossover(parents[0], parents[1])
+        child_new = mutation(child.copy())
+        if np.min(fitness) <= fitness_function(child_new):
+            population[np.argmin(fitness)] = child_new
+        termination_criteria+=1
+
+    print("Best Fitness: {}".format(best_fitness[-10:]))
+
