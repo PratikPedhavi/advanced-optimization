@@ -1,6 +1,7 @@
 from typing import List
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def population_init(population_size: int, gene_count: int, data_type: str) -> List[np.ndarray]:
@@ -44,13 +45,24 @@ def mutation(child_array: np.ndarray, scramble_len: int = 4) -> np.ndarray:
     return child_array
 
 
+def plot_fitness(fitness_tracker):
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.plot(range(1,len(fitness_tracker)+1), fitness_tracker, marker="o", color="blue", linestyle="-")
+    ax.set_title("Fitness Evolution")
+    ax.set_xlabel("Steps counter")
+    ax.set_ylabel("Fitness Value")
+    plt.grid(True)
+    plt.show()
+    return
+
+
 if __name__ == '__main__':
     population_size = 10
     gene_count = 8
     best_fitness = []
     population = population_init(population_size, gene_count, 'int')
     termination_criteria = 0
-    while termination_criteria < 40000:
+    while termination_criteria < 400:
         fitness = list(map(fitness_function, population))
         best_fitness.append(max(fitness))
         least_fitness = min(fitness)
@@ -61,5 +73,7 @@ if __name__ == '__main__':
             population[np.argmin(fitness)] = child_new
         termination_criteria+=1
 
-    print("Best Fitness: {}".format(best_fitness[-10:]))
+    print("First Fitness Values: {}".format(best_fitness[:5]))
+    print("Best Fitness Values: {}".format(best_fitness[-5:]))
+    plot_fitness(best_fitness)
 
